@@ -1,5 +1,5 @@
 flask
-python-dotenv
 openai
+python-dotenv
 twilio
-requests
+gunicorn
