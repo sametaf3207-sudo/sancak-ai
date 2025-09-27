@@ -1,30 +1,31 @@
-from flask import Flask, render_template, request, jsonify
-import openai
-import os
+from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
+import os
+from openai import OpenAI
 
 load_dotenv()
 app = Flask(__name__)
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json.get("message")
-
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": user_message}]
+        user_msg = request.json.get("message")
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # hızlı ve ucuz model
+            messages=[
+                {"role": "system", "content": "Sen yardımcı bir vekil asistansın."},
+                {"role": "user", "content": user_msg}
+            ]
         )
-        bot_reply = response["choices"][0]["message"]["content"]
+
+        bot_reply = response.choices[0].message.content
         return jsonify({"reply": bot_reply})
+
     except Exception as e:
         return jsonify({"reply": f"Hata: {str(e)}"})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
